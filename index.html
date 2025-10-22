@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Iframe Gallery — 4 sites × 30</title>
+  <style>
+    :root{--gap:8px;--bg:#0b1220;--card:#0f1724;--muted:#9aa4b2}
+    body{margin:0;background:linear-gradient(180deg,#071025,#081426);color:#e6eef6;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    header{padding:18px 20px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);display:flex;align-items:center;gap:12px}
+    header h1{margin:0;font-size:15px;font-weight:600}
+    .controls{margin-left:auto;display:flex;gap:8px}
+    .controls button{background:#0b2a3a;border:0;padding:8px 10px;border-radius:8px;color:#cfe8ff;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--gap);padding:12px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:10px;overflow:hidden;min-height:220px;border:1px solid rgba(255,255,255,0.03)}
+    .card .meta{padding:8px 10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+    iframe{width:100%;height:420px;border:0;display:block;background:#fff}
+    .note{padding:12px;color:#cbd6e3;font-size:13px}
+    footer{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+    @media (max-width:720px){iframe{height:320px}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Iframe gallery — 4 sites × 30 (visible, transparent)</h1>
+    <div class="controls">
+      <button id="collapseAll">Collapse all</button>
+      <button id="expandAll">Expand all</button>
+      <button id="toggleLazy">Toggle lazy loading</button>
+    </div>
+  </header>
+
+  <main class="note">
+    This page embeds the four sites you provided repeatedly so you can preview them. <strong>Do not</strong> use this to hide origins or to artificially inflate traffic or metrics — that's unethical and may violate terms of service. If you need a different layout or permission-based aggregation, ask and I’ll help.
+  </main>
+
+  <section class="grid" id="grid"></section>
+
+  <footer>Each frame is sandboxed to limit interactions with this page. Use responsibly.</footer>
+
+  <script>
+    // The target sites
+    const sites = [
+      'https://314213.vercel.app/',
+      'https://1234213-rho.vercel.app/',
+      'https://12432412.vercel.app/',
+      'https://214134.vercel.app/'
+    ];
+
+    const repeatsPerSite = 30; // how many times each site appears
+    const grid = document.getElementById('grid');
+    let useLazy = true;
+
+    function makeCard(src, index){
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `<span>Source: ${src}</span><span>Instance #${index+1}</span>`;
+
+      const frame = document.createElement('iframe');
+      // sandbox without allow-same-origin to prevent the framed page from accessing parent or reading cookies
+      // allow-scripts is included because some sites may need JS, but note some features may break without allow-same-origin.
+      frame.setAttribute('sandbox', 'allow-scripts allow-forms');
+      if(useLazy) frame.setAttribute('loading', 'lazy');
+      frame.src = src;
+      frame.title = `Preview of ${src}`;
+
+      card.appendChild(meta);
+      card.appendChild(frame);
+      return card;
+    }
+
+    // populate grid
+    (function populate(){
+      sites.forEach(site => {
+        for(let i=0;i<repeatsPerSite;i++){
+          grid.appendChild(makeCard(site, i));
+        }
+      });
+    })();
+
+    // controls
+    document.getElementById('collapseAll').addEventListener('click', ()=>{
+      document.querySelectorAll('.card iframe').forEach(f=>{ f.style.height='0px'; f.style.visibility='hidden'; });
+    });
+    document.getElementById('expandAll').addEventListener('click', ()=>{
+      document.querySelectorAll('.card iframe').forEach(f=>{ f.style.height='420px'; f.style.visibility='visible'; });
+    });
+    document.getElementById('toggleLazy').addEventListener('click', ()=>{
+      useLazy = !useLazy;
+      document.querySelectorAll('.card iframe').forEach((f)=>{
+        if(useLazy) f.setAttribute('loading','lazy'); else f.removeAttribute('loading');
+      });
+      alert('Lazy loading ' + (useLazy? 'enabled' : 'disabled'));
+    });
+  </script>
+</body>
+</html>
